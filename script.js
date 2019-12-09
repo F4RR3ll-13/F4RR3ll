@@ -64,7 +64,118 @@ function createMouse() {
     }
 
     let mouseCoordinates = generateMouse();
-    mouse = document.querySelector('[posX = "' + mouseCoordinates[0] + '"][posY = "' + mouseCoordinates[1] + '"]');
+    mouse = document.querySelector('[posX = "' + mouseCoordinates[0] + '"][posY = "' + mouseCoordinates[1] + '"]'); // мышь должна занимать на поле ячейку с координатами из generalmouse
+
+    while (mouse.classList.contains('snakeBody')) {
+        let mouseCoordinates = generateMouse();
+        mouse = document.querySelector('[posX = "' + mouseCoordinates[0] + '"][posY = "' + mouseCoordinates[1] + '"]'); // цикл для избежания ошибки совпадения координат мыши и змеи
+    }
+
     mouse.classList.add('mouse'); // присваиваем класс для mouse
 }
 createMouse();
+
+let direction = 'right';
+let steps = false;
+
+let input = document.createElement('input');
+document.body.appendChild(input);
+input.style.cssText = `
+margin: auto;
+margin-top: 40px;
+font-size: 20px;
+display: block;
+`;
+
+let score = 0;
+input.value = 'ваши очки: ' + score;
+
+// 3 - пропишем движение  для змейки
+
+function move() {
+    let snakeCoordinates = [snakeBody[0].getAttribute('posX'), snakeBody[0].getAttribute('posY')] //получим координаты головы
+    snakeBody[0].classList.remove('head'); // удаляем класс head 
+    snakeBody[snakeBody.length - 1].classList.remove('snakeBody');
+    snakeBody.pop(); // удаляем последний элемент массива
+
+    if (direction == 'right') {
+        if (snakeCoordinates[0] < 10) {
+            snakeBody.unshift(document.querySelector('[posX = "' + (+snakeCoordinates[0] + 1) + '"][posY = "' + snakeCoordinates[1] + '"]')); // с помощью метода unshift на первое место массива помещаем соседнюю ячейку с классом head
+        } else {
+            snakeBody.unshift(document.querySelector('[posX = "1"][posY = "' + snakeCoordinates[1] + '"]'));
+        }
+
+    } else if (direction == 'left') {
+        if (snakeCoordinates[0] > 1) {
+            snakeBody.unshift(document.querySelector('[posX = "' + (+snakeCoordinates[0] - 1) + '"][posY = "' + snakeCoordinates[1] + '"]'));
+        } else {
+            snakeBody.unshift(document.querySelector('[posX = "10"][posY = "' + snakeCoordinates[1] + '"]'));
+        }
+
+    } else if (direction == 'up') {
+        if (snakeCoordinates[1] < 10) {
+            snakeBody.unshift(document.querySelector('[posX = "' + snakeCoordinates[0] + '"][posY = "' + (+snakeCoordinates[1] + 1) + '"]'));
+        } else {
+            snakeBody.unshift(document.querySelector('[posX = "' + snakeCoordinates[0] + '"][posY = "1"]'));
+        }
+
+    } else if (direction == 'down') {
+        if (snakeCoordinates[1] > 1) {
+            snakeBody.unshift(document.querySelector('[posX = "' + +snakeCoordinates[0] + '"][posY = "' + (snakeCoordinates[1] - 1) + '"]'));
+        } else {
+            snakeBody.unshift(document.querySelector('[posX = "' + snakeCoordinates[0] + '"][posY = "10"]'));
+        }
+
+    }
+    // учим есть мышь
+    if (snakeBody[0].getAttribute('posX') == mouse.getAttribute('posX') && snakeBody[0].getAttribute('posY') == mouse.getAttribute('posY')) {
+        mouse.classList.remove('mouse');
+        let a = snakeBody[snakeBody.length - 1].getAttribute('posX');
+        let b = snakeBody[snakeBody.length - 1].getAttribute('posY');
+        snakeBody.push(document.querySelector('[posX = "' + a + '"][posY = "' + b + '"]'));
+        createMouse();
+        score++;
+        input.value = 'ваши очки: ' + score;
+    }
+    // окончание игры
+
+    if (snakeBody[0].classList.contains('snakeBody')) {
+        clearInterval(interval);
+        snakeBody[0].style.background = 'url(death.png) center no-repeat';
+        snakeBody[0].style.backgroundSize = 'contain';
+        setTimeout(() => {
+            alert('Игра окончена');
+        }, 200);
+
+    }
+
+    snakeBody[0].classList.add('head');
+    for (let i = 0; i < snakeBody.length; i++) {
+        snakeBody[i].classList.add('snakeBody');
+    }
+
+    steps = true;
+}
+let interval = setInterval(move, 150);
+
+// часть третья 
+//пропишем движение во всех направлениях
+
+window.addEventListener('keydown', function (e) {
+    if (steps == true) {
+        if (e.keyCode == 37 && direction != 'right') {
+            direction = 'left';
+            steps = false;
+        } else if (e.keyCode == 38 && direction != 'down') {
+            direction = 'up';
+            steps = false;
+        } else if (e.keyCode == 39 && direction != 'left') {
+            direction = 'right';
+            steps = false;
+        } else if (e.keyCode == 40 && direction != 'up') {
+            direction = 'down';
+            steps = false;
+        }
+
+    }
+});
